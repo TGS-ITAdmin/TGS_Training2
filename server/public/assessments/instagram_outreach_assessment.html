@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instagram Module — Outreach Standards Assessment</title>
+<style>
+  :root{
+    --navy:#1F4E79; --navy-dark:#163a5c; --teal:#1f8a8a; --purple:#833AB4;
+    --green:#1e8e4e; --green-bg:#e7f6ed; --red:#c0392b; --red-bg:#fdecea;
+    --ink:#1d2733; --muted:#5b6675; --line:#dde3ea; --bg:#eef2f6; --card:#ffffff;
+    --amber-bg:#fff6e5; --amber:#9a6b00;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    line-height:1.55;}
+  .wrap{max-width:860px;margin:0 auto;padding:24px 18px 80px;}
+  header.hero{background:linear-gradient(135deg,#5B2C8C,var(--navy-dark));
+    color:#fff;border-radius:14px;padding:28px 30px;box-shadow:0 6px 22px rgba(22,58,92,.18);}
+  header.hero .kicker{font-size:13px;letter-spacing:.12em;text-transform:uppercase;
+    opacity:.85;font-weight:600;}
+  header.hero h1{margin:6px 0 4px;font-size:27px;line-height:1.2;}
+  header.hero p{margin:8px 0 0;opacity:.9;font-size:15px;}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
+  .pill{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+    padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;}
+  .instructions{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:16px 20px;margin:18px 0;font-size:14.5px;color:var(--muted);}
+  .instructions b{color:var(--ink);}
+
+  #scorebar{position:sticky;top:0;z-index:20;display:none;margin:0 0 18px;
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:14px 20px;box-shadow:0 4px 16px rgba(0,0,0,.07);}
+  #scorebar .row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+  #scorebar h2{margin:0;font-size:19px;}
+  #scorebar .verdict{font-weight:700;padding:5px 14px;border-radius:999px;font-size:14px;}
+  .pass{background:var(--green-bg);color:var(--green);}
+  .fail{background:var(--red-bg);color:var(--red);}
+  .bar{height:10px;border-radius:6px;background:#e6ebf1;overflow:hidden;margin-top:12px;}
+  .bar > i{display:block;height:100%;width:0;border-radius:6px;background:var(--green);
+    transition:width .6s ease;}
+
+  .q{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:18px 20px;margin:14px 0;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .q .tag{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.06em;
+    text-transform:uppercase;padding:3px 9px;border-radius:6px;color:#fff;margin-bottom:10px;
+    background:var(--purple);}
+  .q .num{color:var(--muted);font-weight:700;}
+  .q .stem{font-size:16px;font-weight:600;margin:2px 0 14px;}
+  .opt{display:flex;align-items:flex-start;gap:11px;border:1.5px solid var(--line);
+    border-radius:9px;padding:11px 14px;margin:8px 0;cursor:pointer;transition:.15s;
+    font-size:15px;}
+  .opt:hover{border-color:#b9c6d6;background:#f7fafc;}
+  .opt input{margin-top:3px;accent-color:var(--purple);width:16px;height:16px;flex:0 0 auto;}
+  .opt .lab{flex:1;}
+  .opt.correct{border-color:var(--green);background:var(--green-bg);}
+  .opt.wrong{border-color:var(--red);background:var(--red-bg);}
+  .opt .mark{font-weight:800;margin-left:6px;}
+  .opt.correct .mark{color:var(--green);} .opt.wrong .mark{color:var(--red);}
+  .explain{display:none;margin-top:12px;padding:12px 14px;border-radius:9px;
+    background:var(--amber-bg);border:1px solid #f0dcae;font-size:14px;color:#4a3a12;}
+  .explain b{color:var(--amber);}
+  .locked .opt{cursor:default;}
+  .locked .opt:hover{border-color:var(--line);background:#fff;}
+  .locked .opt.correct:hover{background:var(--green-bg);border-color:var(--green);}
+  .locked .opt.wrong:hover{background:var(--red-bg);border-color:var(--red);}
+
+  .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px;}
+  button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:13px 26px;
+    cursor:pointer;font-size:15.5px;}
+  #submit{background:var(--purple);color:#fff;box-shadow:0 4px 14px rgba(131,58,180,.3);}
+  #submit:hover{background:#6b2f94;}
+  #retry{background:#fff;color:var(--purple);border:1.5px solid var(--purple);display:none;}
+  #retry:hover{background:#f7f0fb;}
+  .warn{color:var(--red);font-weight:600;font-size:14px;margin-top:12px;display:none;}
+  footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:30px;}
+  .secref{color:var(--muted);font-size:12.5px;margin-top:8px;font-style:italic;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="kicker">Instagram Module &nbsp;|&nbsp; BPO Foundation Training</div>
+    <h1>Outreach Standards — Knowledge Assessment</h1>
+    <p>Check your understanding of Instagram DM word count, personalization, follow-up rules, and QA compliance.</p>
+    <div class="meta">
+      <span class="pill">15 questions</span>
+      <span class="pill">Pass mark: 70%</span>
+      <span class="pill">~10 minutes</span>
+    </div>
+  </header>
+
+  <div class="instructions">
+    Answer every question, then press <b>Submit</b>. You'll get an instant score, and each
+    question will show the correct answer with a short explanation. You need
+    <b>11 out of 15 (70%)</b> to pass.
+  </div>
+
+  <div id="scorebar">
+    <div class="row">
+      <h2 id="scoreText">Score</h2>
+      <span id="verdict" class="verdict"></span>
+    </div>
+    <div class="bar"><i id="barFill"></i></div>
+  </div>
+
+  <form id="quiz"></form>
+
+  <div class="warn" id="warn">Please answer all questions before submitting.</div>
+  <div class="actions">
+    <button type="button" id="submit">Submit answers</button>
+    <button type="button" id="retry">Retake assessment</button>
+  </div>
+
+  <footer>BPO Foundation Training &nbsp;|&nbsp; Instagram Module &nbsp;|&nbsp; Confidential — Trainer Use</footer>
+</div>
+
+<script>
+const QUESTIONS = [
+  { ref:"Message Length",
+    stem:"What is the maximum word count for an Instagram DM?",
+    options:["150 words","250 words","100 words","75 words"],
+    answer:2,
+    why:"Instagram DMs must be between 40 and 100 words — the tightest limit across all three channels. Instagram users don't read walls of text. Every word must earn its place." },
+
+  { ref:"Volume Target",
+    stem:"What is the daily Instagram DM target per shift?",
+    options:["20–30 DMs","5–8 DMs","10–15 DMs","15–20 DMs"],
+    answer:2,
+    why:"The target is 10–15 DMs per shift, the same as Facebook. Instagram is quality-first — you are writing a brand-to-brand message, not a volume blast." },
+
+  { ref:"Personalization",
+    stem:"What must the opening of every Instagram DM include?",
+    options:["A formal greeting and your full name","A reference to their brand — handle, niche, or visual content style","A link to TGS BPO's service page","A question about their current marketing budget"],
+    answer:1,
+    why:"The opening must reference their brand — their handle, their niche, or something specific about their visual content or feed. Generic openers are an immediate QA failure on Instagram because it is fundamentally a brand-to-brand channel." },
+
+  { ref:"Research",
+    stem:"How much time should you spend researching a prospect's profile BEFORE writing their DM?",
+    options:["No research needed — personalise after they reply","30 seconds is enough","90 seconds — checking their feed, bio, and recent posts","5 minutes — read every caption and comment"],
+    answer:2,
+    why:"The 90-second profile check is built into the Instagram process. In those 90 seconds you check their bio, their most recent 3–4 posts, and any business indicators (link in bio, product tags, story highlights). If you skip this, your DM won't be personalised enough to pass QA." },
+
+  { ref:"Message Structure",
+    stem:"Which of the following correctly describes the 3-part Instagram DM formula?",
+    options:["Subject line → services list → book a call link","Brand reference → 1–2 benefit sentences → soft reply CTA","Formal greeting → pain point → free consultation offer","Introduction → case study → pricing table"],
+    answer:1,
+    why:"Every Instagram DM follows: (1) Brand reference — name their handle, niche, or content, (2) 1–2 sentences connecting a benefit to their situation, (3) One soft CTA — a reply-based question with no links." },
+
+  { ref:"Channel Comparison",
+    stem:"Compared to Email and Facebook, how does Instagram rank in terms of message length?",
+    options:["Longest — Instagram users prefer detailed messages","Same length as Facebook","Shortest — Instagram is the most concise of the three channels","Middle — shorter than email but longer than Facebook"],
+    answer:2,
+    why:"Instagram is the shortest and most visual channel of the three. Email allows up to 250 words; Facebook allows 50–150; Instagram caps at 40–100. The platform itself conditions users to short, punchy communication." },
+
+  { ref:"Follow-Up Rules",
+    stem:"What is the follow-up rule for Instagram outreach?",
+    options:["Follow up every 3 days until they reply","Day 0 initial DM + Day 5 follow-up only. Maximum 2 messages total","Send up to 4 messages — Day 0, 3, 7, and 14","No follow-ups — if they don't reply to the first DM, move on"],
+    answer:1,
+    why:"Instagram shares the same follow-up limit as Facebook: two messages maximum. Day 0 is your initial DM; Day 5 is your one permitted follow-up. A third message is a QA auto-fail and considered harassment." },
+
+  { ref:"Prohibited Behaviors",
+    stem:"Which of the following is PROHIBITED on Instagram outreach?",
+    options:["Mentioning the prospect's handle in your opening line","Using automation tools or mass-DM bots","Referencing their most recent post","Asking a reply-based question as your CTA"],
+    answer:1,
+    why:"Automation tools and mass-DM bots are prohibited — no exceptions, regardless of what tools are advertised online. Instagram's algorithm detects and penalises automated DM activity, and it violates TGS BPO's QA standards." },
+
+  { ref:"Follow-Up Rules",
+    stem:"A prospect hasn't replied to your Instagram DM. It's now Day 6. What should you do?",
+    options:["Send a second follow-up explaining the benefits again","DM them on Facebook as a backup channel","Your outreach window has closed — no further messages, update Asana to 'No Response'","Wait until Day 10, then send a final check-in"],
+    answer:2,
+    why:"Day 5 was your last permitted follow-up. Day 6 means your window has closed. Update Asana to 'No Response' and do not contact them again. Cross-channel outreach also requires TL approval — you cannot simply switch to Facebook without checking first." },
+
+  { ref:"QA Scoring",
+    stem:"What percentage of your QA score comes from Message Quality and Personalization?",
+    options:["10%","15%","25%","35%"],
+    answer:2,
+    why:"Message Quality and Personalization is worth 25% of your total QA score on Instagram — the highest single-category weight. Instagram's brand-to-brand nature makes generic messaging particularly damaging to your score." },
+
+  { ref:"Prospect Qualification",
+    stem:"Which of the following is a RED FLAG that should stop you from DMing an Instagram account?",
+    options:["Their bio mentions 'founder' or 'owner'","Their account is set to private with no visible posts or business activity","They have fewer than 1,000 followers","Their last post was 4 days ago"],
+    answer:1,
+    why:"A fully private account means you cannot verify any business activity, niche, or content — making meaningful personalisation impossible. This is a skip. A 90-second profile check should give you enough to qualify or disqualify them without ever sending a DM." },
+
+  { ref:"Asana Logging",
+    stem:"What should you do immediately after sending an Instagram DM?",
+    options:["Like three of their recent posts to stay visible","Send a connection request to reinforce the outreach","Log it in Asana: status 'Contacted', group/source, post topic, DM date, Day 5 follow-up reminder set","Wait 24 hours and check if they've read the message before logging anything"],
+    answer:2,
+    why:"Asana logging is mandatory and must happen immediately after sending. If the DM isn't logged, it's treated as if it was never sent during QA review. Log the source, the personalisation hook you used, the date, and set your Day 5 reminder." },
+
+  { ref:"CTA Quality",
+    stem:"Your Instagram CTA says: 'Check out how we've helped similar brands at www.tgsbpo.com — book a free call!' — what is wrong with this?",
+    options:["Nothing — links increase response rates on Instagram","It contains a link and multiple asks, both of which violate Instagram outreach standards","The tone is too casual for a business prospect","It should mention the prospect's follower count"],
+    answer:1,
+    why:"Two violations in one CTA: (1) a URL drop — links in DMs are the most common Instagram QA failure, and Instagram suppresses messages with links in some cases, and (2) multiple asks (visit a website AND book a call). Your CTA must be one soft reply-based question, nothing else." },
+
+  { ref:"Cross-Channel Rules",
+    stem:"A prospect replies to your Instagram DM expressing interest. They're also active on LinkedIn. What do you do?",
+    options:["Immediately connect on LinkedIn to build rapport on both channels","Continue the conversation on Instagram only — do not move channels without TL approval","Send them a LinkedIn connection request and move the conversation there","Email them a formal proposal to look more professional"],
+    answer:1,
+    why:"Continue on Instagram where the conversation started. Moving to a second active channel without Team Leader approval is a cross-channel violation — even when the prospect is responsive. Get TL sign-off first if you believe LinkedIn would serve the deal better." },
+
+  { ref:"QA Scoring",
+    stem:"What is the minimum passing score on the Instagram QA scorecard?",
+    options:["60 out of 100","65 out of 100","70 out of 100","80 out of 100"],
+    answer:2,
+    why:"The minimum passing score is 70 out of 100 — the same across all three outreach channels. With Message Quality and Personalization worth 25 points alone, a well-personalised, compliant DM gets you most of the way there." }
+];
+
+const form = document.getElementById('quiz');
+let locked = false;
+
+function render(){
+  form.innerHTML = "";
+  QUESTIONS.forEach((q,i)=>{
+    const card = document.createElement('div');
+    card.className = 'q'; card.id = 'q'+i;
+    let html = `<span class="tag">Instagram</span>`
+      + `<div class="stem"><span class="num">Q${i+1}.</span> ${q.stem}</div>`;
+    q.options.forEach((opt,j)=>{
+      html += `<label class="opt" id="q${i}o${j}">`
+        + `<input type="radio" name="q${i}" value="${j}">`
+        + `<span class="lab">${opt}</span><span class="mark" id="m${i}o${j}"></span></label>`;
+    });
+    html += `<div class="explain" id="e${i}"></div>`;
+    html += `<div class="secref">${q.ref}</div>`;
+    card.innerHTML = html;
+    form.appendChild(card);
+  });
+}
+
+function grade(){
+  if(locked) return;
+  for(let i=0;i<QUESTIONS.length;i++){
+    if(!form.querySelector(`input[name="q${i}"]:checked`)){
+      document.getElementById('warn').style.display='block';
+      document.getElementById('q'+i).scrollIntoView({behavior:'smooth',block:'center'});
+      return;
+    }
+  }
+  document.getElementById('warn').style.display='none';
+  locked = true;
+  let correct = 0;
+  QUESTIONS.forEach((q,i)=>{
+    const card = document.getElementById('q'+i);
+    card.classList.add('locked');
+    const chosen = +form.querySelector(`input[name="q${i}"]:checked`).value;
+    if(chosen===q.answer) correct++;
+    const co = document.getElementById(`q${i}o${q.answer}`);
+    co.classList.add('correct');
+    document.getElementById(`m${i}o${q.answer}`).textContent = '✓';
+    if(chosen!==q.answer){
+      const wo = document.getElementById(`q${i}o${chosen}`);
+      wo.classList.add('wrong');
+      document.getElementById(`m${i}o${chosen}`).textContent = '✗';
+    }
+    card.querySelectorAll('input').forEach(inp=>inp.disabled=true);
+    const ex = document.getElementById('e'+i);
+    ex.innerHTML = `<b>${chosen===q.answer?'Correct.':'Answer: '+q.options[q.answer]+'.'}</b> ${q.why}`;
+    ex.style.display='block';
+  });
+
+  const pct = Math.round(correct/QUESTIONS.length*100);
+  const pass = pct>=70;
+  const sb = document.getElementById('scorebar');
+  sb.style.display='block';
+  document.getElementById('scoreText').textContent =
+    `You scored ${correct} / ${QUESTIONS.length}  (${pct}%)`;
+  const v = document.getElementById('verdict');
+  v.textContent = pass ? 'PASS' : 'NOT YET — review & retake';
+  v.className = 'verdict ' + (pass?'pass':'fail');
+  const fill = document.getElementById('barFill');
+  fill.style.background = pass ? 'var(--green)' : 'var(--red)';
+  requestAnimationFrame(()=>{ fill.style.width = pct+'%'; });
+
+  document.getElementById('submit').style.display='none';
+  document.getElementById('retry').style.display='inline-block';
+  sb.scrollIntoView({behavior:'smooth',block:'start'});
+
+  // Tell the parent app (TraineeClass.jsx / AssessmentPlayer) that this
+  // assessment is done, so it can save progress and unlock the next item.
+  window.parent.postMessage({
+    type: 'tgs-assessment-complete',
+    overall: {
+      weighted: pct,
+      decision: pass ? 'recommended' : 'not_recommended'
+    }
+  }, '*');
+}
+
+function reset(){
+  locked=false;
+  render();
+  document.getElementById('scorebar').style.display='none';
+  document.getElementById('submit').style.display='inline-block';
+  document.getElementById('retry').style.display='none';
+  document.getElementById('warn').style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+document.getElementById('submit').addEventListener('click',grade);
+document.getElementById('retry').addEventListener('click',reset);
+render();
+</script>
+</body>
+</html>

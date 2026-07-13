@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TGS New Hire Orientation — Assessment</title>
+<style>
+  :root{
+    --navy:#1F4E79; --navy-dark:#163a5c; --teal:#1f8a8a; --purple:#6b3fa0;
+    --green:#1e8e4e; --green-bg:#e7f6ed; --red:#c0392b; --red-bg:#fdecea;
+    --ink:#1d2733; --muted:#5b6675; --line:#dde3ea; --bg:#eef2f6; --card:#ffffff;
+    --amber-bg:#fff6e5; --amber:#9a6b00;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    line-height:1.55;}
+  .wrap{max-width:860px;margin:0 auto;padding:24px 18px 80px;}
+  header.hero{background:linear-gradient(135deg,var(--navy),var(--navy-dark));
+    color:#fff;border-radius:14px;padding:28px 30px;box-shadow:0 6px 22px rgba(22,58,92,.18);}
+  header.hero .kicker{font-size:13px;letter-spacing:.12em;text-transform:uppercase;
+    opacity:.85;font-weight:600;}
+  header.hero h1{margin:6px 0 4px;font-size:27px;line-height:1.2;}
+  header.hero p{margin:8px 0 0;opacity:.9;font-size:15px;}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
+  .pill{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+    padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;}
+  .instructions{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:16px 20px;margin:18px 0;font-size:14.5px;color:var(--muted);}
+  .instructions b{color:var(--ink);}
+  .note{background:var(--amber-bg);border:1px solid #f0dcae;border-radius:12px;
+    padding:14px 18px;margin:0 0 18px;font-size:13.5px;color:#4a3a12;}
+
+  #scorebar{position:sticky;top:0;z-index:20;display:none;margin:0 0 18px;
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:14px 20px;box-shadow:0 4px 16px rgba(0,0,0,.07);}
+  #scorebar .row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+  #scorebar h2{margin:0;font-size:19px;}
+  #scorebar .verdict{font-weight:700;padding:5px 14px;border-radius:999px;font-size:14px;}
+  .pass{background:var(--green-bg);color:var(--green);}
+  .fail{background:var(--red-bg);color:var(--red);}
+  .bar{height:10px;border-radius:6px;background:#e6ebf1;overflow:hidden;margin-top:12px;}
+  .bar > i{display:block;height:100%;width:0;border-radius:6px;background:var(--green);
+    transition:width .6s ease;}
+
+  .q{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:18px 20px;margin:14px 0;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .q .tag{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.06em;
+    text-transform:uppercase;padding:3px 9px;border-radius:6px;color:#fff;margin-bottom:10px;
+    background:var(--navy);}
+  .q .num{color:var(--muted);font-weight:700;}
+  .q .stem{font-size:16px;font-weight:600;margin:2px 0 14px;}
+  .opt{display:flex;align-items:flex-start;gap:11px;border:1.5px solid var(--line);
+    border-radius:9px;padding:11px 14px;margin:8px 0;cursor:pointer;transition:.15s;
+    font-size:15px;}
+  .opt:hover{border-color:#b9c6d6;background:#f7fafc;}
+  .opt input{margin-top:3px;accent-color:var(--navy);width:16px;height:16px;flex:0 0 auto;}
+  .opt .lab{flex:1;}
+  .opt.correct{border-color:var(--green);background:var(--green-bg);}
+  .opt.wrong{border-color:var(--red);background:var(--red-bg);}
+  .opt .mark{font-weight:800;margin-left:6px;}
+  .opt.correct .mark{color:var(--green);} .opt.wrong .mark{color:var(--red);}
+  .explain{display:none;margin-top:12px;padding:12px 14px;border-radius:9px;
+    background:var(--amber-bg);border:1px solid #f0dcae;font-size:14px;color:#4a3a12;}
+  .explain b{color:var(--amber);}
+  .locked .opt{cursor:default;}
+  .locked .opt:hover{border-color:var(--line);background:#fff;}
+  .locked .opt.correct:hover{background:var(--green-bg);border-color:var(--green);}
+  .locked .opt.wrong:hover{background:var(--red-bg);border-color:var(--red);}
+
+  .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px;}
+  button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:13px 26px;
+    cursor:pointer;font-size:15.5px;}
+  #submit{background:var(--navy);color:#fff;box-shadow:0 4px 14px rgba(31,78,121,.3);}
+  #submit:hover{background:var(--navy-dark);}
+  #retry{background:#fff;color:var(--navy);border:1.5px solid var(--navy);display:none;}
+  #retry:hover{background:#f0f5fa;}
+  .warn{color:var(--red);font-weight:600;font-size:14px;margin-top:12px;display:none;}
+  footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:30px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="kicker">TGS BPO Incorporated &nbsp;|&nbsp; New Hire Orientation</div>
+    <h1>New Hire Orientation Assessment</h1>
+    <p>This assessment measures your understanding of the policies, processes, and expectations covered during orientation.</p>
+    <div class="meta">
+      <span class="pill">10 questions</span>
+      <span class="pill">Pass mark: 90%</span>
+      <span class="pill">~30 minutes</span>
+    </div>
+  </header>
+
+  <div class="instructions">
+    Read each statement carefully and select <b>True</b> or <b>False</b>. You need
+    <b>9 out of 10 (90%)</b> to pass.
+  </div>
+
+  <div class="note">
+    <b>Note:</b> the original form phrased these as double-negative questions (e.g. "Is it true that it is false that…").
+    They've been rewritten below as plain True/False statements for clarity — the underlying policy content and correct answers are unchanged.
+  </div>
+
+  <div id="scorebar">
+    <div class="row">
+      <h2 id="scoreText">Score</h2>
+      <span id="verdict" class="verdict"></span>
+    </div>
+    <div class="bar"><i id="barFill"></i></div>
+  </div>
+
+  <form id="quiz"></form>
+
+  <div class="warn" id="warn">Please answer all questions before submitting.</div>
+  <div class="actions">
+    <button type="button" id="submit">Submit answers</button>
+    <button type="button" id="retry">Retake assessment</button>
+  </div>
+
+  <footer>TGS BPO Incorporated &nbsp;|&nbsp; New Hire Orientation &nbsp;|&nbsp; Confidential — Trainer Use</footer>
+</div>
+
+<script>
+const QUESTIONS = [
+  { ref:"Service Requests",
+    stem:"All inquiries and reports should go through the Service Request Form.",
+    options:["True","False"],
+    answer:0,
+    why:"True — all inquiries and reports are required to be routed through the Service Request Form." },
+
+  { ref:"Service Requests",
+    stem:"The Service Request should contain the requester's information.",
+    options:["True","False"],
+    answer:0,
+    why:"True — the requester's information must be included on the Service Request." },
+
+  { ref:"Attendance — Tardiness",
+    stem:"Tardiness can be counted as four instances in a cutoff OR a total of 30 minutes within a month.",
+    options:["True","False"],
+    answer:0,
+    why:"True — tardiness is tracked both by instance count (4 in a cutoff) and by cumulative minutes (30 minutes in a month)." },
+
+  { ref:"Attendance — Overbreak",
+    stem:"Overbreak refers to an unsanctioned extension of the prescribed break period.",
+    options:["True","False"],
+    answer:0,
+    why:"True — overbreak is any extension of a break beyond what was scheduled or approved." },
+
+  { ref:"Attendance — Absence Notice",
+    stem:"Failure to notify the immediate supervisor of an absence within the first 1 hour of the shift is considered an offense.",
+    options:["True","False"],
+    answer:0,
+    why:"True — not notifying your supervisor within the first hour of the shift is treated as an offense." },
+
+  { ref:"Attendance — Absence Notice",
+    stem:"The employee should notify their supervisor of absences at least four (4) hours before the shift start.",
+    options:["True","False"],
+    answer:1,
+    why:"False — this is not the stated rule. (If your policy has a separate advance-notice requirement distinct from the 1-hour-into-shift rule above, double-check this specific figure against your handbook.)" },
+
+  { ref:"Attendance — NCNS",
+    stem:"NCNS (No Call - No Show) applies when an employee fails to call or show up for at least one working day.",
+    options:["True","False"],
+    answer:0,
+    why:"True — NCNS is triggered when an employee neither calls in nor shows up for at least one full working day." },
+
+  { ref:"Code of Discipline (CODC)",
+    stem:"Manipulating timekeeping records (timecards/screenshots) is considered a violation under CODC.",
+    options:["True","False"],
+    answer:0,
+    why:"True — falsifying or manipulating timekeeping records is a violation under the Code of Discipline." },
+
+  { ref:"Disciplinary Process",
+    stem:"A Notice to Explain is already a penalty or sanction.",
+    options:["True","False"],
+    answer:1,
+    why:"False — a Notice to Explain is a request for the employee's side of the story, not a penalty in itself." },
+
+  { ref:"Separation Process",
+    stem:"Separation documentation includes a duly signed/emailed resignation letter with a 30-day rendering period, and immediate resignation requires proof of being unfit to work (or other valid proof).",
+    options:["True","False"],
+    answer:0,
+    why:"True — standard resignation requires a signed/emailed letter with 30 days' notice; immediate resignation requires valid supporting proof (e.g. medical unfitness)." }
+];
+
+const form = document.getElementById('quiz');
+let locked = false;
+
+function render(){
+  form.innerHTML = "";
+  QUESTIONS.forEach((q,i)=>{
+    const card = document.createElement('div');
+    card.className = 'q'; card.id = 'q'+i;
+    let html = `<span class="tag">${q.ref}</span>`
+      + `<div class="stem"><span class="num">Q${i+1}.</span> ${q.stem}</div>`;
+    q.options.forEach((opt,j)=>{
+      html += `<label class="opt" id="q${i}o${j}">`
+        + `<input type="radio" name="q${i}" value="${j}">`
+        + `<span class="lab">${opt}</span><span class="mark" id="m${i}o${j}"></span></label>`;
+    });
+    html += `<div class="explain" id="e${i}"></div>`;
+    card.innerHTML = html;
+    form.appendChild(card);
+  });
+}
+
+function grade(){
+  if(locked) return;
+  for(let i=0;i<QUESTIONS.length;i++){
+    if(!form.querySelector(`input[name="q${i}"]:checked`)){
+      document.getElementById('warn').style.display='block';
+      document.getElementById('q'+i).scrollIntoView({behavior:'smooth',block:'center'});
+      return;
+    }
+  }
+  document.getElementById('warn').style.display='none';
+  locked = true;
+  let correct = 0;
+  QUESTIONS.forEach((q,i)=>{
+    const card = document.getElementById('q'+i);
+    card.classList.add('locked');
+    const chosen = +form.querySelector(`input[name="q${i}"]:checked`).value;
+    if(chosen===q.answer) correct++;
+    const co = document.getElementById(`q${i}o${q.answer}`);
+    co.classList.add('correct');
+    document.getElementById(`m${i}o${q.answer}`).textContent = '✓';
+    if(chosen!==q.answer){
+      const wo = document.getElementById(`q${i}o${chosen}`);
+      wo.classList.add('wrong');
+      document.getElementById(`m${i}o${chosen}`).textContent = '✗';
+    }
+    card.querySelectorAll('input').forEach(inp=>inp.disabled=true);
+    const ex = document.getElementById('e'+i);
+    ex.innerHTML = `<b>${chosen===q.answer?'Correct.':'Answer: '+q.options[q.answer]+'.'}</b> ${q.why}`;
+    ex.style.display='block';
+  });
+
+  const pct = Math.round(correct/QUESTIONS.length*100);
+  const pass = pct>=90;
+  const sb = document.getElementById('scorebar');
+  sb.style.display='block';
+  document.getElementById('scoreText').textContent =
+    `You scored ${correct} / ${QUESTIONS.length}  (${pct}%)`;
+  const v = document.getElementById('verdict');
+  v.textContent = pass ? 'PASS' : 'NOT YET — review & retake';
+  v.className = 'verdict ' + (pass?'pass':'fail');
+  const fill = document.getElementById('barFill');
+  fill.style.background = pass ? 'var(--green)' : 'var(--red)';
+  requestAnimationFrame(()=>{ fill.style.width = pct+'%'; });
+
+  document.getElementById('submit').style.display='none';
+  document.getElementById('retry').style.display='inline-block';
+  sb.scrollIntoView({behavior:'smooth',block:'start'});
+
+  // Tell the parent app (TraineeClass.jsx / AssessmentPlayer) that this
+  // assessment is done, so it can save progress and unlock the next item.
+  window.parent.postMessage({
+    type: 'tgs-assessment-complete',
+    overall: {
+      weighted: pct,
+      decision: pass ? 'recommended' : 'not_recommended'
+    }
+  }, '*');
+}
+
+function reset(){
+  locked=false;
+  render();
+  document.getElementById('scorebar').style.display='none';
+  document.getElementById('submit').style.display='inline-block';
+  document.getElementById('retry').style.display='none';
+  document.getElementById('warn').style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+document.getElementById('submit').addEventListener('click',grade);
+document.getElementById('retry').addEventListener('click',reset);
+render();
+</script>
+</body>
+</html>

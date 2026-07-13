@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payroll and Benefits — Assessment</title>
+<style>
+  :root{
+    --navy:#1F4E79; --navy-dark:#163a5c; --teal:#1f8a8a; --purple:#6b3fa0;
+    --green:#1e8e4e; --green-bg:#e7f6ed; --red:#c0392b; --red-bg:#fdecea;
+    --ink:#1d2733; --muted:#5b6675; --line:#dde3ea; --bg:#eef2f6; --card:#ffffff;
+    --amber-bg:#fff6e5; --amber:#9a6b00;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    line-height:1.55;}
+  .wrap{max-width:860px;margin:0 auto;padding:24px 18px 80px;}
+  header.hero{background:linear-gradient(135deg,var(--navy),var(--navy-dark));
+    color:#fff;border-radius:14px;padding:28px 30px;box-shadow:0 6px 22px rgba(22,58,92,.18);}
+  header.hero .kicker{font-size:13px;letter-spacing:.12em;text-transform:uppercase;
+    opacity:.85;font-weight:600;}
+  header.hero h1{margin:6px 0 4px;font-size:27px;line-height:1.2;}
+  header.hero p{margin:8px 0 0;opacity:.9;font-size:15px;}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
+  .pill{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+    padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;}
+  .instructions{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:16px 20px;margin:18px 0;font-size:14.5px;color:var(--muted);}
+  .instructions b{color:var(--ink);}
+
+  #scorebar{position:sticky;top:0;z-index:20;display:none;margin:0 0 18px;
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:14px 20px;box-shadow:0 4px 16px rgba(0,0,0,.07);}
+  #scorebar .row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+  #scorebar h2{margin:0;font-size:19px;}
+  #scorebar .verdict{font-weight:700;padding:5px 14px;border-radius:999px;font-size:14px;}
+  .pass{background:var(--green-bg);color:var(--green);}
+  .fail{background:var(--red-bg);color:var(--red);}
+  .bar{height:10px;border-radius:6px;background:#e6ebf1;overflow:hidden;margin-top:12px;}
+  .bar > i{display:block;height:100%;width:0;border-radius:6px;background:var(--green);
+    transition:width .6s ease;}
+
+  .q{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:18px 20px;margin:14px 0;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .q .tag{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.06em;
+    text-transform:uppercase;padding:3px 9px;border-radius:6px;color:#fff;margin-bottom:10px;
+    background:var(--navy);}
+  .q .num{color:var(--muted);font-weight:700;}
+  .q .stem{font-size:16px;font-weight:600;margin:2px 0 14px;}
+  .opt{display:flex;align-items:flex-start;gap:11px;border:1.5px solid var(--line);
+    border-radius:9px;padding:11px 14px;margin:8px 0;cursor:pointer;transition:.15s;
+    font-size:15px;}
+  .opt:hover{border-color:#b9c6d6;background:#f7fafc;}
+  .opt input{margin-top:3px;accent-color:var(--navy);width:16px;height:16px;flex:0 0 auto;}
+  .opt .lab{flex:1;}
+  .opt.correct{border-color:var(--green);background:var(--green-bg);}
+  .opt.wrong{border-color:var(--red);background:var(--red-bg);}
+  .opt .mark{font-weight:800;margin-left:6px;}
+  .opt.correct .mark{color:var(--green);} .opt.wrong .mark{color:var(--red);}
+  .explain{display:none;margin-top:12px;padding:12px 14px;border-radius:9px;
+    background:var(--amber-bg);border:1px solid #f0dcae;font-size:14px;color:#4a3a12;}
+  .explain b{color:var(--amber);}
+  .locked .opt{cursor:default;}
+  .locked .opt:hover{border-color:var(--line);background:#fff;}
+  .locked .opt.correct:hover{background:var(--green-bg);border-color:var(--green);}
+  .locked .opt.wrong:hover{background:var(--red-bg);border-color:var(--red);}
+
+  .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px;}
+  button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:13px 26px;
+    cursor:pointer;font-size:15.5px;}
+  #submit{background:var(--navy);color:#fff;box-shadow:0 4px 14px rgba(31,78,121,.3);}
+  #submit:hover{background:var(--navy-dark);}
+  #retry{background:#fff;color:var(--navy);border:1.5px solid var(--navy);display:none;}
+  #retry:hover{background:#f0f5fa;}
+  .warn{color:var(--red);font-weight:600;font-size:14px;margin-top:12px;display:none;}
+  footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:30px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="kicker">TGS BPO Incorporated &nbsp;|&nbsp; New Hire Orientation</div>
+    <h1>Payroll and Benefits</h1>
+    <p>Welcome to the Payroll and Benefits Assessment. This assessment is designed to measure your understanding of the topics discussed during the orientation and ensure that you are prepared for your employment with TGS BPO Incorporated.</p>
+    <div class="meta">
+      <span class="pill">10 questions</span>
+      <span class="pill">Pass mark: 90%</span>
+      <span class="pill">Time limit: 30 minutes</span>
+    </div>
+  </header>
+
+  <div class="instructions">
+    Please take note of the following guidelines:<br><br>
+    <b>Time Limit:</b> 30 minutes<br>
+    <b>Passing Score:</b> 90%<br>
+    <b>Instructions:</b> Read each question carefully and select the best answer.<br><br>
+    Please answer thoughtfully and avoid rushing through the assessment. Your results will help confirm your understanding of the company's policies, processes, and expectations.<br><br>
+    Good luck, and do your best!
+  </div>
+
+  <div id="scorebar">
+    <div class="row">
+      <h2 id="scoreText">Score</h2>
+      <span id="verdict" class="verdict"></span>
+    </div>
+    <div class="bar"><i id="barFill"></i></div>
+  </div>
+
+  <form id="quiz"></form>
+
+  <div class="warn" id="warn">Please answer all questions before submitting.</div>
+  <div class="actions">
+    <button type="button" id="submit">Submit answers</button>
+    <button type="button" id="retry">Retake assessment</button>
+  </div>
+
+  <footer>TGS BPO Incorporated &nbsp;|&nbsp; New Hire Orientation &nbsp;|&nbsp; Confidential — Trainer Use</footer>
+</div>
+
+<script>
+const QUESTIONS = [
+  { ref:"Night Differential",
+    stem:"When does night differential apply and how much is it?",
+    options:["9PM–5AM at 15%","10PM–6AM at 10%","11PM–7AM at 20%","12AM–8AM at 10%"],
+    answer:1,
+    why:"Night differential applies from 10PM to 6AM, at a rate of 10%." },
+
+  { ref:"Timekeeping",
+    stem:"What system is used for timekeeping and attendance tracking?",
+    options:["Manual log sheet","Biometric scanner","Hubstaff","Asana"],
+    answer:2,
+    why:"Hubstaff is the system used for timekeeping and attendance tracking." },
+
+  { ref:"Payout Schedule",
+    stem:"When is the payout schedule?",
+    options:["5th and 20th","15th and 30th","10th and 25th","None of the Above"],
+    answer:0,
+    why:"Payouts are on the 5th and 20th of each month." },
+
+  { ref:"Leave Benefits",
+    stem:"When does Service Incentive Leave (SIL) accrue?",
+    options:["Every week","Every month","After 6 months","None of the Above"],
+    answer:1,
+    why:"Service Incentive Leave accrues every month." },
+
+  { ref:"Salary Disputes",
+    stem:"How should an employee report a salary dispute?",
+    options:["Ignore if below PHP 1,000","File a Service Request via Asana within 20 days from payout","Report directly to their supervisor only","Wait until year-end"],
+    answer:1,
+    why:"Salary disputes should be reported by filing a Service Request via Asana within 20 days from the payout date." },
+
+  { ref:"Hourly Rate Formula",
+    stem:"What is the correct formula used to compute an employee's hourly rate?",
+    options:["Monthly rate ÷ 30 days ÷ 8 hours","Annual rate ÷ 365 days ÷ 8 hours","(Monthly rate × 12) ÷ 261 working days ÷ 8 hours","Monthly rate ÷ 22 days ÷ 9 hours"],
+    answer:2,
+    why:"The hourly rate is computed as (Monthly rate × 12) ÷ 261 working days ÷ 8 hours." },
+
+  { ref:"Government Contributions",
+    stem:"What is the basis for computing government-mandated contributions (SSS, PhilHealth, Pag-IBIG)?",
+    options:["Net pay after deductions","Basic monthly salary","Daily rate multiplied by attendance","None of the Above"],
+    answer:1,
+    why:"Government-mandated contributions are computed based on the basic monthly salary." },
+
+  { ref:"Government Contributions",
+    stem:"When is the schedule of deduction for the employee's share of government contributions?",
+    options:["Every 5th payout","Every 15th payout","Every 5th and 20th payout","Every 20th payout"],
+    answer:2,
+    why:"The employee's share of government contributions is deducted every 5th and 20th payout." },
+
+  { ref:"Work Hours",
+    stem:"What is the standard work hours per day?",
+    options:["9 hours","10 hours","8 hours","7 hours"],
+    answer:2,
+    why:"The standard work day is 8 hours." },
+
+  { ref:"13th Month Pay",
+    stem:"An employee is entitled to 13th Month Pay even if he/she was employed for less than a month.",
+    options:["True","False"],
+    answer:1,
+    why:"False — 13th month pay is prorated based on actual length of service within the calendar year; being employed for less than a month does not by itself guarantee entitlement to it as described here." }
+];
+
+const form = document.getElementById('quiz');
+let locked = false;
+
+function render(){
+  form.innerHTML = "";
+  QUESTIONS.forEach((q,i)=>{
+    const card = document.createElement('div');
+    card.className = 'q'; card.id = 'q'+i;
+    let html = `<span class="tag">${q.ref}</span>`
+      + `<div class="stem"><span class="num">Q${i+1}.</span> ${q.stem}</div>`;
+    q.options.forEach((opt,j)=>{
+      html += `<label class="opt" id="q${i}o${j}">`
+        + `<input type="radio" name="q${i}" value="${j}">`
+        + `<span class="lab">${opt}</span><span class="mark" id="m${i}o${j}"></span></label>`;
+    });
+    html += `<div class="explain" id="e${i}"></div>`;
+    card.innerHTML = html;
+    form.appendChild(card);
+  });
+}
+
+function grade(){
+  if(locked) return;
+  for(let i=0;i<QUESTIONS.length;i++){
+    if(!form.querySelector(`input[name="q${i}"]:checked`)){
+      document.getElementById('warn').style.display='block';
+      document.getElementById('q'+i).scrollIntoView({behavior:'smooth',block:'center'});
+      return;
+    }
+  }
+  document.getElementById('warn').style.display='none';
+  locked = true;
+  let correct = 0;
+  QUESTIONS.forEach((q,i)=>{
+    const card = document.getElementById('q'+i);
+    card.classList.add('locked');
+    const chosen = +form.querySelector(`input[name="q${i}"]:checked`).value;
+    if(chosen===q.answer) correct++;
+    const co = document.getElementById(`q${i}o${q.answer}`);
+    co.classList.add('correct');
+    document.getElementById(`m${i}o${q.answer}`).textContent = '✓';
+    if(chosen!==q.answer){
+      const wo = document.getElementById(`q${i}o${chosen}`);
+      wo.classList.add('wrong');
+      document.getElementById(`m${i}o${chosen}`).textContent = '✗';
+    }
+    card.querySelectorAll('input').forEach(inp=>inp.disabled=true);
+    const ex = document.getElementById('e'+i);
+    ex.innerHTML = `<b>${chosen===q.answer?'Correct.':'Answer: '+q.options[q.answer]+'.'}</b> ${q.why}`;
+    ex.style.display='block';
+  });
+
+  const pct = Math.round(correct/QUESTIONS.length*100);
+  const pass = pct>=90;
+  const sb = document.getElementById('scorebar');
+  sb.style.display='block';
+  document.getElementById('scoreText').textContent =
+    `You scored ${correct} / ${QUESTIONS.length}  (${pct}%)`;
+  const v = document.getElementById('verdict');
+  v.textContent = pass ? 'PASS' : 'NOT YET — review & retake';
+  v.className = 'verdict ' + (pass?'pass':'fail');
+  const fill = document.getElementById('barFill');
+  fill.style.background = pass ? 'var(--green)' : 'var(--red)';
+  requestAnimationFrame(()=>{ fill.style.width = pct+'%'; });
+
+  document.getElementById('submit').style.display='none';
+  document.getElementById('retry').style.display='inline-block';
+  sb.scrollIntoView({behavior:'smooth',block:'start'});
+
+  // Tell the parent app (TraineeClass.jsx / AssessmentPlayer) that this
+  // assessment is done, so it can save progress and unlock the next item.
+  window.parent.postMessage({
+    type: 'tgs-assessment-complete',
+    overall: {
+      weighted: pct,
+      decision: pass ? 'recommended' : 'not_recommended'
+    }
+  }, '*');
+}
+
+function reset(){
+  locked=false;
+  render();
+  document.getElementById('scorebar').style.display='none';
+  document.getElementById('submit').style.display='inline-block';
+  document.getElementById('retry').style.display='none';
+  document.getElementById('warn').style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+document.getElementById('submit').addEventListener('click',grade);
+document.getElementById('retry').addEventListener('click',reset);
+render();
+</script>
+</body>
+</html>
