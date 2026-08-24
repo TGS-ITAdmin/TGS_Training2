@@ -17,6 +17,9 @@ const PORT = process.env.PORT || 3001;
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
+// ── Health check (public, no auth) — used by Railway's deploy healthcheck ──
+app.get('/api/health', (req, res) => res.status(200).json({ ok: true }));
+
 // ── Video streaming with range support ───────────────────────
 const UPLOADS_DIR = process.env.UPLOADS_PATH || path.join(__dirname, '../../uploads');
 app.get('/uploads/:filename', (req, res) => {
@@ -47,6 +50,10 @@ app.get('/uploads/:filename', (req, res) => {
 });
 
 // ── Assessment HTML (static) ─────────────────────────────────
+// Uploaded assessment files live on a configurable (ideally persistent-volume)
+// path; everything else in /public (assessment.html shell, etc.) stays bundled.
+const ASSESSMENTS_DIR = process.env.ASSESSMENTS_PATH || path.join(__dirname, '../public/assessments');
+app.use('/assessment/assessments', express.static(ASSESSMENTS_DIR));
 app.use('/assessment', express.static(path.join(__dirname, '../public')));
 
 // ── Slide player (static) ────────────────────────────────────
