@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const { requireAdmin } = require('../middleware/auth');
 
-const ASSESSMENTS_DIR = path.join(__dirname, '../../public/assessments');
+const ASSESSMENTS_DIR = process.env.ASSESSMENTS_PATH || path.join(__dirname, '../../public/assessments');
 fs.mkdirSync(ASSESSMENTS_DIR, { recursive: true });
 
 const storage = multer.diskStorage({
