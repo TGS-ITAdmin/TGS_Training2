@@ -292,6 +292,20 @@ router.post('/classes/:id/modules', upload.single('video'), async (req, res) => 
   }
 });
 
+// NOTE: this must be declared BEFORE /modules/:id — otherwise Express matches
+// ':id' = "reorder" on that route first, and this handler is never reached.
+router.put('/modules/reorder', async (req, res) => {
+  const { order } = req.body; // array of { id, sequence_order }
+  try {
+    await Promise.all(order.map(({ id, sequence_order }) => 
+      Module.findByIdAndUpdate(id, { sequence_order })
+    ));
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.put('/modules/:id', upload.single('video'), async (req, res) => {
   const { title, description, allow_retake } = req.body;
   try {
@@ -331,18 +345,6 @@ router.delete('/modules/:id', async (req, res) => {
     
     await Module.findByIdAndDelete(req.params.id);
     await Progress.deleteMany({ module_id: req.params.id });
-    res.json({ ok: true });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.put('/modules/reorder', async (req, res) => {
-  const { order } = req.body; // array of { id, sequence_order }
-  try {
-    await Promise.all(order.map(({ id, sequence_order }) => 
-      Module.findByIdAndUpdate(id, { sequence_order })
-    ));
     res.json({ ok: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
