@@ -140,6 +140,146 @@ function ModuleFormModal({ classId, mod, onSave, onClose }) {
   );
 }
 
+function titleFromFilename(filename) {
+  return filename.replace(/\.[^/.]+$/, '').replace(/[_-]+/g, ' ').trim();
+}
+
+function BulkVideoUploadModal({ classId, onSave, onClose }) {
+  const [items, setItems] = useState([]); // { file, title, status: 'pending'|'uploading'|'done'|'error', error }
+  const [uploading, setUploading] = useState(false);
+
+  const handleFiles = (fileList) => {
+    const newItems = Array.from(fileList).map(file => ({
+      file,
+      title: titleFromFilename(file.name),
+      status: 'pending',
+      error: null
+    }));
+    setItems(prev => [...prev, ...newItems]);
+  };
+
+  const updateTitle = (idx, title) => {
+    setItems(prev => prev.map((it, i) => (i === idx ? { ...it, title } : it)));
+  };
+
+  const removeItem = (idx) => {
+    setItems(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const allDone = items.length > 0 && items.every(it => it.status === 'done' || it.status === 'error');
+  const anyError = items.some(it => it.status === 'error');
+
+  const handleUploadAll = async () => {
+    setUploading(true);
+    // Sequential on purpose: the server assigns each module's sequence_order
+    // based on the current max in the DB, so uploading in parallel would race
+    // and could hand out duplicate/out-of-order sequence numbers.
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].status === 'done') continue; // allow retry-all without re-uploading successes
+      setItems(prev => prev.map((it, idx) => (idx === i ? { ...it, status: 'uploading' } : it)));
+      try {
+        const fd = new FormData();
+        fd.append('title', items[i].title || items[i].file.name);
+        fd.append('type', 'video');
+        fd.append('description', '');
+        fd.append('allow_retake', 'false');
+        fd.append('video', items[i].file);
+        await api.createModule(classId, fd);
+        setItems(prev => prev.map((it, idx) => (idx === i ? { ...it, status: 'done' } : it)));
+      } catch (err) {
+        setItems(prev => prev.map((it, idx) => (idx === i ? { ...it, status: 'error', error: err.message || 'Upload failed' } : it)));
+      }
+    }
+    setUploading(false);
+    onSave(); // refresh the module list behind the modal so successes show up immediately
+  };
+
+  return (
+    <div className="modal-backdrop" onClick={uploading ? undefined : onClose}>
+      <div className="modal" style={{ maxWidth: 640 }} onClick={e => e.stopPropagation()}>
+        <div className="modal-title">Add Multiple Videos</div>
+
+        {items.length === 0 && (
+          <div className="fg">
+            <label className="lbl">Video Files *</label>
+            <input
+              className="inp"
+              type="file"
+              accept="video/*"
+              multiple
+              onChange={e => handleFiles(e.target.files)}
+            />
+            <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
+              Select several videos at once — each becomes its own module, added in the order you pick them. You can rename any of them before uploading.
+            </div>
+          </div>
+        )}
+
+        {items.length > 0 && (
+          <div className="fg">
+            <label className="lbl">{items.length} video{items.length !== 1 ? 's' : ''} queued</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 320, overflowY: 'auto' }}>
+              {items.map((it, idx) => (
+                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--bdr)', background: 'rgba(13,33,55,.4)' }}>
+                  <span style={{ fontSize: 18 }}>🎬</span>
+                  <input
+                    className="inp"
+                    style={{ flex: 1, margin: 0 }}
+                    value={it.title}
+                    disabled={it.status === 'uploading' || it.status === 'done'}
+                    onChange={e => updateTitle(idx, e.target.value)}
+                  />
+                  <span style={{ fontSize: 11, color: 'var(--muted)', minWidth: 60, textAlign: 'right' }}>
+                    {it.status === 'pending' && 'Queued'}
+                    {it.status === 'uploading' && 'Uploading…'}
+                    {it.status === 'done' && '✅ Done'}
+                    {it.status === 'error' && '❌ Failed'}
+                  </span>
+                  {it.status === 'pending' && (
+                    <button className="btn btn-ghost btn-sm" onClick={() => removeItem(idx)}>✕</button>
+                  )}
+                </div>
+              ))}
+            </div>
+            {anyError && (
+              <div className="warn-box" style={{ marginTop: 10 }}>
+                Some videos failed to upload. Fix your connection or the file and click "Upload All" again — successful ones won't be re-uploaded.
+              </div>
+            )}
+            {!uploading && !allDone && (
+              <div style={{ marginTop: 10 }}>
+                <input
+                  className="inp"
+                  type="file"
+                  accept="video/*"
+                  multiple
+                  onChange={e => handleFiles(e.target.files)}
+                />
+                <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>Add more files to this batch, or click Upload All below.</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="modal-footer">
+          <button className="btn btn-ghost" disabled={uploading} onClick={onClose}>
+            {allDone ? 'Close' : 'Cancel'}
+          </button>
+          {!allDone && (
+            <button
+              className="btn btn-pri"
+              disabled={uploading || items.length === 0 || items.some(it => !it.title.trim())}
+              onClick={handleUploadAll}
+            >
+              {uploading ? 'Uploading…' : `Upload All (${items.filter(it => it.status !== 'done').length})`}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AssignTraineeModal({ classId, assignedIds, onSave, onClose }) {
   const [trainees, setTrainees] = useState([]);
   const [saving, setSaving] = useState(null);
@@ -297,6 +437,7 @@ export default function AdminClassDetail() {
   const [cls, setCls] = useState(null);
   const [modules, setModules] = useState([]);
   const [showModuleModal, setShowModuleModal] = useState(false);
+  const [showBulkModal, setShowBulkModal] = useState(false);
   const [editMod, setEditMod] = useState(null);
   const [showTraineeModal, setShowTraineeModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
@@ -340,6 +481,7 @@ export default function AdminClassDetail() {
         <div className="topbar-actions">
           <button className="btn btn-ghost btn-sm" onClick={() => setShowProgressModal(true)}>📊 Progress</button>
           <button className="btn btn-ghost btn-sm" onClick={() => setShowTraineeModal(true)}>👥 Trainees</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => setShowBulkModal(true)}>+ Add Multiple Videos</button>
           <button className="btn btn-pri btn-sm" onClick={() => { setEditMod(null); setShowModuleModal(true); }}>+ Add Module</button>
         </div>
       </div>
@@ -447,6 +589,14 @@ export default function AdminClassDetail() {
           mod={editMod}
           onSave={() => { setShowModuleModal(false); load(); }}
           onClose={() => setShowModuleModal(false)}
+        />
+      )}
+
+      {showBulkModal && (
+        <BulkVideoUploadModal
+          classId={id}
+          onSave={load}
+          onClose={() => { setShowBulkModal(false); load(); }}
         />
       )}
 
