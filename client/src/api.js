@@ -37,6 +37,7 @@ export const api = {
   // Admin — trainees
   getTrainees: () => req('GET', '/admin/trainees'),
   createTrainee: (data) => req('POST', '/admin/trainees', data),
+  bulkCreateTrainees: (trainees, classId) => req('POST', '/admin/trainees/bulk', { trainees, classId }),
   updateTrainee: (id, data) => req('PUT', `/admin/trainees/${id}`, data),
   deleteTrainee: (id) => req('DELETE', `/admin/trainees/${id}`),
 
