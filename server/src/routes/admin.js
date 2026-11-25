@@ -91,6 +91,76 @@ router.post('/trainees', async (req, res) => {
   }
 });
 
+// Bulk create trainees (JSON rows parsed from Excel on the client).
+// Must stay above any '/trainees/:id' routes.
+router.post('/trainees/bulk', async (req, res) => {
+  const { trainees, classId } = req.body;
+  if (!Array.isArray(trainees) || trainees.length === 0) return res.status(400).json({ error: 'No rows provided' });
+  if (trainees.length > 500) return res.status(400).json({ error: 'Max 500 rows per request' });
+
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const results = new Array(trainees.length);
+  const valid = []; // { idx, name, email, password }
+  const seen = new Set();
+
+  trainees.forEach((r, idx) => {
+    const name = String(r?.name ?? '').trim();
+    const email = String(r?.email ?? '').toLowerCase().trim();
+    const password = String(r?.password ?? '');
+    const base = { row: r?.row ?? idx + 1, name, email };
+    if (!name) return (results[idx] = { ...base, status: 'failed', reason: 'Missing name' });
+    if (!EMAIL_RE.test(email)) return (results[idx] = { ...base, status: 'failed', reason: 'Invalid email' });
+    if (password.length < 6) return (results[idx] = { ...base, status: 'failed', reason: 'Password must be at least 6 characters' });
+    if (seen.has(email)) return (results[idx] = { ...base, status: 'failed', reason: 'Duplicate email in file' });
+    seen.add(email);
+    valid.push({ idx, name, email, password, base });
+  });
+
+  try {
+    const existing = await User.find({ email: { $in: valid.map(v => v.email) } }).select('email');
+    const existingSet = new Set(existing.map(u => u.email));
+    const toCreate = [];
+    for (const v of valid) {
+      if (existingSet.has(v.email)) results[v.idx] = { ...v.base, status: 'failed', reason: 'Email already exists' };
+      else toCreate.push(v);
+    }
+
+    // Async hashing in small batches so the server stays responsive for other users
+    const BATCH = 10;
+    for (let i = 0; i < toCreate.length; i += BATCH) {
+      await Promise.all(toCreate.slice(i, i + BATCH).map(async v => {
+        v.hash = await bcrypt.hash(v.password, 10);
+      }));
+    }
+
+    const createdIds = [];
+    for (const v of toCreate) {
+      try {
+        const u = await User.create({ name: v.name, email: v.email, password_hash: v.hash, role: 'trainee' });
+        createdIds.push(u._id);
+        results[v.idx] = { ...v.base, status: 'created' };
+      } catch (e) {
+        results[v.idx] = { ...v.base, status: 'failed', reason: e.code === 11000 ? 'Email already exists' : e.message };
+      }
+    }
+
+    let enrolled = 0;
+    if (classId && createdIds.length) {
+      const r = await Class.updateOne({ _id: classId }, { $addToSet: { trainees: { $each: createdIds } } });
+      if (r.matchedCount) enrolled = createdIds.length;
+    }
+
+    res.json({
+      created: createdIds.length,
+      failed: results.filter(r => r.status === 'failed').length,
+      enrolled,
+      results,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 router.put('/trainees/:id', async (req, res) => {
   const { name, email, password } = req.body;
   try {
