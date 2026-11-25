@@ -73,7 +73,7 @@ function ModuleFormModal({ classId, mod, onSave, onClose }) {
             <select className="inp" value={type} onChange={e => setType(e.target.value)}>
               <option value="video">🎬 Video Training</option>
               <option value="slide_deck">🖼️ Slide Deck (Interactive)</option>
-              <option value="assessment">📋 Assessment (TGS Pre-Hire)</option>
+              <option value="assessment">📋 Assessment</option>
               <option value="text">📄 Text / Reading Material</option>
             </select>
           </div>
